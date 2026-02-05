@@ -15,9 +15,13 @@ def handler(request):
         }
 
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+
+        transcript = transcript_list.find_transcript(['de', 'en'])
+        transcript_data = transcript.fetch()
+
         formatter = TextFormatter()
-        text = formatter.format_transcript(transcript)
+        text = formatter.format_transcript(transcript_data)
 
         return {
             "statusCode": 200,
@@ -38,4 +42,3 @@ def handler(request):
                 "transcript": None
             })
         }
-
