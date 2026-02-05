@@ -1,29 +1,17 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
-from urllib.parse import parse_qs, urlparse
 import json
 
-def extract_video_id(url):
-    query = urlparse(url)
-    if query.hostname in ["www.youtube.com", "youtube.com"]:
-        return parse_qs(query.query).get("v", [None])[0]
-    if query.hostname == "youtu.be":
-        return query.path[1:]
-    return None
-
 def handler(request):
-    video_url = request.args.get("url")
-    if not video_url:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Missing video URL"})
-        }
+    video_id = request.args.get("videoId")
 
-    video_id = extract_video_id(video_url)
     if not video_id:
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": "Invalid YouTube URL"})
+            "body": json.dumps({
+                "success": False,
+                "error": "Use: /api/transcript?videoId=VIDEO_ID"
+            })
         }
 
     try:
@@ -34,7 +22,8 @@ def handler(request):
         return {
             "statusCode": 200,
             "body": json.dumps({
-                "video_id": video_id,
+                "success": True,
+                "videoId": video_id,
                 "transcript": text
             })
         }
@@ -42,5 +31,11 @@ def handler(request):
     except Exception as e:
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
+            "body": json.dumps({
+                "success": False,
+                "videoId": video_id,
+                "error": str(e),
+                "transcript": None
+            })
         }
+
